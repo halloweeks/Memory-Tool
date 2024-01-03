@@ -44,7 +44,7 @@ ssize_t write_memory(pid_t pid, uintptr_t address, const void *value, size_t siz
 	return process_vm_writev(pid, local, 1, remote, 1, 0);
 }
 
-pid_t find_pid(const char *process_name) {
+pid_t get_pid(const char *process_name) {
 	DIR *dir = opendir("/proc");
 	struct dirent *entry = NULL;
 	char cmdline_path[256];
@@ -72,7 +72,7 @@ pid_t find_pid(const char *process_name) {
 	return -1;
 }
 
-unsigned long long get_module_address(pid_t process_id, const char *module_name) {
+unsigned long long get_module_base_address(pid_t process_id, const char *module_name) {
 	char filename[256];
 	char line[1024];
 	FILE *fp = NULL;
@@ -96,25 +96,20 @@ unsigned long long get_module_address(pid_t process_id, const char *module_name)
 
 
 int main(int argc, const char *argv[]) {
-	const char* package = "com.tencent.ig"; // Process Name
-	const char* module = "libUE4.so"; // Module name
-	unsigned long long module_address = 0x00;
+	unsigned long long base_addr;
+	off_t offset = 0x58A24C;
+	float value = 1.5498327;
 	
-	pid_t pid = find_pid(package);
+	pid_t pid = get_pid("com.tencent.ig");
 	
 	if (pid == -1) {
-		printf("Failed to open %s process\n", package);
+		printf("Failed to open com.tencent.ig process\n");
 		return 1;
 	}
 	
-	module_address = get_module_address(pid, module);
+	base_addr = get_module_base_address(pid, "libUE4.so");
 	
-	off_t offset = 0x58A24C;
-	float valve = 1.405448258;
-	
-	if (write_memory(pid, module_address + offset, &value, sizeof(value)) == sizeof(value)) {
-		printf("Memory injection successful!\n");
-	} else {
+	if (write_memory(pid, base_addr + offset, &value, sizeof(value)) != sizeof(value)) {
 		printf("Failed to write memory\n");
 	}
 	
