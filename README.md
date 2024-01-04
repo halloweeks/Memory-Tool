@@ -78,8 +78,8 @@ int main() {
     }
 
     // Modify memory to change the normal view into iPad view
-    float new_value = 1.8532798;
-    off_t offset = 0x57A5CB6;
+    float new_value = 240.0;
+    off_t offset = 0x3EF90E4;
 
     ssize_t write_result = write_memory(pid, base_address + offset, &new_value, sizeof(float));
 
